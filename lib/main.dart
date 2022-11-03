@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_light_control/rest.dart';
+import 'package:flutter_light_control/screen/set_up_light.dart';
+import 'constants.dart';
 import 'screen/main.dart';
 
 
-// This is the type used by the popup menu below.
-enum Menu { itemOne, itemTwo, itemThree, itemFour }
-
-const String appTitle = "Light Control";
 
 void main() {
   runApp(const LightControlApp());
@@ -28,43 +26,6 @@ class _LightControlAppState extends State<LightControlApp> {
   // final TextEditingController _controller2 = TextEditingController();
   // Future<String>? _futureString;
 
-  String _selectedMenu = '';
-
-  AppBar buildAppBar () {
-    return AppBar(
-      title: const Text(appTitle),
-      actions: <Widget>[
-// This button presents popup menu items.
-        PopupMenuButton<Menu>(
-// Callback that sets the selected popup menu item.
-            onSelected: (Menu item) {
-              setState(() {
-                _selectedMenu = item.name;
-              });
-            },
-            itemBuilder: (BuildContext context) =>
-            <PopupMenuEntry<Menu>>[
-              const PopupMenuItem<Menu>(
-                value: Menu.itemOne,
-                child: Text('Settings'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemTwo,
-                child: Text('Item 2'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemThree,
-                child: Text('Item 3'),
-              ),
-              const PopupMenuItem<Menu>(
-                value: Menu.itemFour,
-                child: Text('Item 4'),
-              ),
-            ]),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -72,11 +33,13 @@ class _LightControlAppState extends State<LightControlApp> {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Scaffold(
-        appBar: buildAppBar(),
-        body: mainScreen()
+    initialRoute: Screen.main,
+    routes: {
+      Screen.main: (context) => const MainScreen(),
+      Screen.lightSetup: (context) => const LightSetupScreen(),
+    }
 
-            ),
+
 
     );
 
