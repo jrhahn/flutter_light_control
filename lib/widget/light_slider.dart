@@ -24,9 +24,9 @@ class _LightSliderState extends State<LightSlider> {
           _currentSliderValue = value;
         });
       },
-      onChangeEnd:  (double value) {
+      onChangeEnd: (double value) {
         setBrightness(value / 100);
-        },
+      },
     );
   }
 }

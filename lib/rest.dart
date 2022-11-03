@@ -3,9 +3,7 @@ import 'dart:developer';
 
 import 'package:http/http.dart' as http;
 
-
 const serverURL = "http://192.168.178.34";
-
 
 Future<String> setBrightness(double brightness) async {
   final brightnessClamped = brightness.clamp(0.0, 1.0);
