@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
 import '../widget/light_slider.dart';
@@ -6,8 +7,19 @@ import '../widget/light_slider.dart';
 // This is the type used by the popup menu below.
 enum Menu { itemSetting }
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+
+}
+
+class _MainScreenState extends State<MainScreen> {
+  Future<void> _storeUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    print("");
+  }
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
