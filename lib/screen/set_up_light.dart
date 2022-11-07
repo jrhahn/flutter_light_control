@@ -100,7 +100,7 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       // _url = (prefs.getInt('counter') ?? 0) + 1;
-      prefs.setString('url', _url);
+      prefs.setString('url', _controller.text);
     });
   }
 
