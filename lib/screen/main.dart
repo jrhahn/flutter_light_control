@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget buildBody() {
-    return Padding(
+    return Container(
       padding: EdgeInsets.all(15.0),
       child: Row(
         // mainAxisAlignment: MainAxisAlignment.start,
@@ -89,7 +89,7 @@ class _MainScreenState extends State<MainScreen> {
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
           );
         });
   }
