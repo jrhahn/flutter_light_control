@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_light_control/light_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
@@ -17,7 +19,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final ValueNotifier<String> _notify = ValueNotifier<String>("notify");
+  final ValueNotifier<String> _lightConfigurationNotify = ValueNotifier<String>("notify");
 
   @override
   void initState() {
@@ -25,13 +27,15 @@ class _MainScreenState extends State<MainScreen> {
     _loadValue();
   }
 
-  @override
-
-
   //Loading counter value on start
   Future<void> _loadValue() async {
     final prefs = await SharedPreferences.getInstance();
-    _notify.value = prefs.getString('url') ?? _notify.value;
+
+    final lightConfigurationJson = prefs.getString('lightConfiguration');
+
+    if(lightConfigurationJson != null) {
+      _lightConfigurationNotify.value = "${LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))}";
+    }
   }
 
   AppBar buildAppBar(BuildContext context) {
@@ -62,20 +66,21 @@ class _MainScreenState extends State<MainScreen> {
   Widget buildBody() {
     return Padding(
       padding: EdgeInsets.all(15.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
+      child: Row(
+        // mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
           lightNameWidget(),
-          const LightSlider(),
+          const Expanded(
+              child: LightSlider(),
+          ),
         ],
       ),
-      //
     );
   }
 
   Widget lightNameWidget() {
     return ValueListenableBuilder(
-        valueListenable: _notify,
+        valueListenable: _lightConfigurationNotify,
         builder: (BuildContext context, String value, Widget? child) {
           return Text(
             value,
@@ -95,23 +100,3 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// class _MainScreenState extends State<MainScreen> {
-//   // final TextEditingController _controller = TextEditingController();
-//   // final TextEditingController _controller2 = TextEditingController();
-//   // Future<String>? _futureString;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//         title: appTitle,
-//         theme: ThemeData(
-//           primarySwatch: Colors.blue,
-//         ),
-//         initialRoute: '/main',
-//         routes: {
-//           '/': (context) => const MainScreen(),
-//         }
-//     );
-//   }
-//
-// }
