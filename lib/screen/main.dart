@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,27 +14,38 @@ class MainScreen extends StatefulWidget {
 
   @override
   State<MainScreen> createState() => _MainScreenState();
-
 }
 
 class _MainScreenState extends State<MainScreen> {
-  Future<void> _storeUrl() async {
+  final ValueNotifier<String> _notify = ValueNotifier<String>("notify");
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValue();
+  }
+
+  @override
+
+
+  //Loading counter value on start
+  Future<void> _loadValue() async {
     final prefs = await SharedPreferences.getInstance();
-    print("");
+    _notify.value = prefs.getString('url') ?? _notify.value;
   }
 
   AppBar buildAppBar(BuildContext context) {
     return AppBar(
       title: const Text(appTitle),
       actions: <Widget>[
-// This button presents popup menu items.
         PopupMenuButton<Menu>(
-// Callback that sets the selected popup menu item.
             onSelected: (Menu item) {
               switch (item) {
                 case Menu.itemSetting:
                   {
-                    Navigator.pushNamed(context, Screen.lightSetup);
+                    Navigator.pushNamed(context, Screen.lightSetup).then((_) => setState(() {
+                        _loadValue();
+                    }));
                   }
               }
             },
@@ -50,14 +63,30 @@ class _MainScreenState extends State<MainScreen> {
     return Padding(
       padding: EdgeInsets.all(15.0),
       child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: const <Widget>[
-            Text("Light 1",
-                textAlign: TextAlign.left, style: TextStyle(fontSize: 28)),
-            LightSlider()
-          ]),
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          lightNameWidget(),
+          const LightSlider(),
+        ],
+      ),
       //
     );
+  }
+
+  Widget lightNameWidget() {
+    return ValueListenableBuilder(
+        valueListenable: _notify,
+        builder: (BuildContext context, String value, Widget? child) {
+          return Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          );
+        });
   }
 
   @override
