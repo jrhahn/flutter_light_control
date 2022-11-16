@@ -19,7 +19,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final ValueNotifier<String> _lightConfigurationNotify = ValueNotifier<String>("notify");
+  final ValueNotifier<String> _lightConfigurationNotify =
+      ValueNotifier<String>("notify");
 
   @override
   void initState() {
@@ -33,8 +34,9 @@ class _MainScreenState extends State<MainScreen> {
 
     final lightConfigurationJson = prefs.getString('lightConfiguration');
 
-    if(lightConfigurationJson != null) {
-      _lightConfigurationNotify.value = "${LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))}";
+    if (lightConfigurationJson != null) {
+      _lightConfigurationNotify.value =
+          "${LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))}";
     }
   }
 
@@ -47,9 +49,10 @@ class _MainScreenState extends State<MainScreen> {
               switch (item) {
                 case Menu.itemSetting:
                   {
-                    Navigator.pushNamed(context, Screen.lightSetup).then((_) => setState(() {
-                        _loadValue();
-                    }));
+                    Navigator.pushNamed(context, Screen.lightSetup)
+                        .then((_) => setState(() {
+                              _loadValue();
+                            }));
                   }
               }
             },
@@ -66,14 +69,19 @@ class _MainScreenState extends State<MainScreen> {
   Widget buildBody() {
     return Container(
       padding: EdgeInsets.all(15.0),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          lightNameWidget(),
-          const Expanded(
-              child:
-              LightSlider(),
+          Row(children: <Widget>[
+            lightNameWidget(),
+            Expanded(child: LightSlider()),
+          ]),
+          Expanded(
+            child: Container(
+              color: Colors.amber,
+              width: 100,
+            ),
           ),
         ],
       ),
@@ -101,4 +109,3 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(appBar: buildAppBar(context), body: buildBody());
   }
 }
-
