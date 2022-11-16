@@ -135,7 +135,7 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
 
   Widget buildBody(BuildContext context) {
     return Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(30.0),
         child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
         Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

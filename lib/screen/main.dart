@@ -67,11 +67,13 @@ class _MainScreenState extends State<MainScreen> {
     return Container(
       padding: EdgeInsets.all(15.0),
       child: Row(
-        // mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           lightNameWidget(),
           const Expanded(
-              child: LightSlider(),
+              child:
+              LightSlider(),
           ),
         ],
       ),
