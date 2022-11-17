@@ -66,24 +66,36 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
+  List<Widget> _getLightControllers() {
+    List<Widget> controllers = [];
+
+    int numElements = 3;
+    for (int i = 0; i < numElements; i++) {
+      controllers.add(Row(children: <Widget>[
+        lightNameWidget(),
+        Expanded(child: LightSlider())
+      ]));
+    }
+
+    controllers.add(
+      Expanded(
+        child: Container(
+          color: Colors.amber,
+          width: 100,
+        ),
+      ),
+    );
+
+    return controllers;
+  }
+
   Widget buildBody() {
     return Container(
       padding: EdgeInsets.all(15.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Row(children: <Widget>[
-            lightNameWidget(),
-            Expanded(child: LightSlider()),
-          ]),
-          Expanded(
-            child: Container(
-              color: Colors.amber,
-              width: 100,
-            ),
-          ),
-        ],
+        children: _getLightControllers(),
       ),
     );
   }
