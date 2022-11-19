@@ -77,7 +77,7 @@ class InputData {
 
 }
 
-Widget createMask(InputData data) {
+Widget createLightConfigWidget(InputData data) {
   return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -130,21 +130,43 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
   void initState() {
     super.initState();
 
+    _prepareWidgets();
+  }
+
+  void _prepareWidgets() {
     final numExistingConfigs = 1;
     final numTotalConfigs = numExistingConfigs + numNewConfigs;
+
+    configs.clear();
 
     for (var ii = 0; ii < numTotalConfigs; ii++) {
       configs.add(InputData(_lightConfiguration));
     }
 
-    void _new(InputData config) {
+    void initLightConfig(InputData config) {
       config.controllerName = TextEditingController();
       config.controllerIpAddress = TextEditingController();
     }
 
-    configs.forEach(_new);
+    configs.forEach(initLightConfig);
 
     _loadLightConfigs();
+  }
+
+  // Loading counter value on start
+  Future<void> _loadLightConfigs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final numLights = prefs.getInt('numLights') ?? 0;
+
+    for (var ii = 0; ii < numLights; ii++) {
+      final lightConfigurationJson = prefs.getString('lightConfiguration');
+      if (lightConfigurationJson != null) {
+        setState(() {
+          configs.add(InputData(
+              LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))));
+        });
+      }
+    }
   }
 
   Future<void> _storeLightConfiguration() async {
@@ -162,38 +184,25 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     configs.forEach(storeConfig);
   }
 
-  // Loading counter value on start
-  Future<void> _loadLightConfigs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final numLights = prefs.getInt('numLights') ?? 0;
-
-    configs.clear();
-
-    for (var ii = 0; ii < numLights; ii++) {
-      final lightConfigurationJson = prefs.getString('lightConfiguration');
-      if (lightConfigurationJson != null) {
-        setState(() {
-          configs.add(InputData(
-              LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))));
-        });
-      }
-    }
-  }
-
   AppBar buildAppBar() {
     return AppBar(
       title: const Text(appTitle),
     );
   }
 
-  void _addLightConfiguration() {}
+  void _addLightConfiguration() {
+    setState(() {
+      numNewConfigs++;
+      _prepareWidgets();
+    });
+  }
 
   List<Widget> buildLightConfigWidgets(BuildContext context) {
     List<Widget> buildWidgets() {
       List<Widget> widgets = [];
 
       for (var ii = 0; ii < configs.length; ii++) {
-        widgets.add(createMask(configs[ii]));
+        widgets.add(createLightConfigWidget(configs[ii]));
       }
       return widgets;
     }
@@ -244,45 +253,6 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
   Widget buildBody(BuildContext context) {
     return SingleChildScrollView(
         child: Column(children: buildLightConfigWidgets(context)));
-    // [
-
-    // createMask(config[0]),
-    // onSubmitted: (String value) async {
-    //   await showDialog<void>(
-    //       context: context,
-    //       builder: (BuildContext context) {
-    //         return AlertDialog(
-    //           title: const Text('Thanks!'),
-    //           content: Text(
-    //               'You typed "$value", which has length ${value.characters.length}.'),
-    //           actions: <Widget>[
-    //             TextButton(
-    //               onPressed: () {
-    //                 Navigator.pop(context);
-    //               },
-    //               child: const Text('OK'),
-    //             ),
-    //           ],
-    //         );
-    //       });
-    // }
-    // ),
-    // MyCustomForm(),
-    // Row(
-    //   crossAxisAlignment: CrossAxisAlignment.start,
-    //   children: [
-    //     const Text("Add Light",
-    //         textAlign: TextAlign.left, style: TextStyle(fontSize: 28)),
-    //     const TextField(),
-    //   ],
-    // ),
-    // ElevatedButton(
-    //   onPressed: () {
-    //     _storeLightConfiguration();
-    //     Navigator.pop(context);
-    //   },
-    //   child: const Text('Save'),
-    // ),
   }
 
   @override
