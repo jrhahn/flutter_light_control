@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_light_control/light_configuration.dart';
+import 'package:flutter_light_control/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
@@ -125,36 +126,45 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
   }
 
   void _createNewLightConfig() {
-    final _lightConfiguration = LightConfiguration(
+    final lightConfiguration = LightConfiguration(
         'IP address, e.g. 192.128.0.1', 'Name, e.g. "Kitchen Light"');
 
-    final emptyEntry = InputData(_lightConfiguration);
+    final emptyEntry = InputData(lightConfiguration);
 
     configs[emptyEntry.id] = emptyEntry;
   }
 
   // Loading counter value on start
   Future<void> _loadLightConfigs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final serializedConfigs = prefs.getString('lightConfiguration') ?? "{}";
+    final lightConfigs = await loadLightConfigurations();
 
-    logger.d("Read $serializedConfigs");
-
-    try {
-      final listConfigs = jsonDecode(serializedConfigs);
-      logger.d(listConfigs);
-
-      listConfigs.forEach((id, config) {
-        final data = InputData(LightConfiguration.fromJson(config));
-
-        setState(() {
-          configs[data.id] = data;
-        });
+    lightConfigs.forEach((id, config) {
+      setState(() {
+        final inputData = InputData(config);
+        configs[inputData.id] = inputData;
       });
-    } on FormatException catch (e) {
-      logger.e("$e (json: $serializedConfigs)");
-    }
+    });
   }
+  // final prefs = await SharedPreferences.getInstance();
+  // final serializedConfigs = prefs.getString('lightConfiguration') ?? "{}";
+
+  // logger.d("Read $serializedConfigs");
+
+  // try {
+  //   final listConfigs = jsonDecode(serializedConfigs);
+  //   logger.d(listConfigs);
+
+  //   listConfigs.forEach((id, config) {
+  //     final data = InputData(LightConfiguration.fromJson(config));
+
+  //     setState(() {
+  //       configs[data.id] = data;
+  //     });
+  //   });
+  // } on FormatException catch (e) {
+  //   logger.e("$e (json: $serializedConfigs)");
+  // }
+  // }
 
   Future<void> _storeLightConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
