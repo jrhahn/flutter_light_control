@@ -80,7 +80,7 @@ class _MainScreenState extends State<MainScreen> {
     controllers.add(
       Expanded(
         child: Container(
-          color: Colors.amber,
+          // color: Colors.amber,
           width: 100,
         ),
       ),

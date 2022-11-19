@@ -67,6 +67,38 @@ import '../constants.dart';
 //   }
 // }
 
+class InputData {
+  late TextEditingController controllerName;
+  late TextEditingController controllerIpAddress;
+
+  LightConfiguration config;
+
+  InputData(this.config); //, this.controllerName, this.controllerIpAddress);
+
+}
+
+Widget createMask(InputData data) {
+  return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Flexible(
+            child: TextField(
+                controller: data.controllerName,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: data.config.name,
+                ))),
+        Container(width: 10),
+        Flexible(
+            child: TextField(
+                controller: data.controllerIpAddress,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: data.config.ipAddress,
+                ))),
+      ]));
+}
+
 class LightSetupScreen extends StatefulWidget {
   const LightSetupScreen({super.key});
 
@@ -75,56 +107,77 @@ class LightSetupScreen extends StatefulWidget {
 }
 
 class _LightSetupScreenState extends State<LightSetupScreen> {
-  LightConfiguration _lightConfiguration = LightConfiguration(
-      'IP address, e.g. 192.128.0.1',
-      'Name, e.g. "Kitchen Light"'
-  );
+  final _lightConfiguration = LightConfiguration(
+      'IP address, e.g. 192.128.0.1', 'Name, e.g. "Kitchen Light"');
 
-  late TextEditingController _controllerName;
-  late TextEditingController _controllerIpAddress;
+  var numNewConfigs = 5;
+
+  List<InputData> configs = [];
 
   @override
   void dispose() {
-    _controllerName.dispose();
-    _controllerIpAddress.dispose();
-    super.dispose();
-  }
-
-  // Loading counter value on start
-  Future<void> _loadCounter() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final lightConfigurationJson = prefs.getString('lightConfiguration');
-
-    if (lightConfigurationJson != null) {
-      setState(() {
-        _lightConfiguration = LightConfiguration.fromJson(
-            jsonDecode(lightConfigurationJson)
-        );
-      });
+    void _dispose(InputData config) {
+      config.controllerName.dispose();
+      config.controllerIpAddress.dispose();
     }
+
+    configs.forEach(_dispose);
+
+    super.dispose();
   }
 
   @override
   void initState() {
     super.initState();
 
-    _controllerName = TextEditingController();
-    _controllerIpAddress = TextEditingController();
-    _loadCounter();
+    final numExistingConfigs = 1;
+    final numTotalConfigs = numExistingConfigs + numNewConfigs;
+
+    for (var ii = 0; ii < numTotalConfigs; ii++) {
+      configs.add(InputData(_lightConfiguration));
+    }
+
+    void _new(InputData config) {
+      config.controllerName = TextEditingController();
+      config.controllerIpAddress = TextEditingController();
+    }
+
+    configs.forEach(_new);
+
+    _loadLightConfigs();
   }
 
   Future<void> _storeLightConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final thisConfig = LightConfiguration(
-        _controllerIpAddress.text,
-        _controllerName.text
-    );
+    void storeConfig(InputData data) {
+      final config = LightConfiguration(
+        data.controllerIpAddress.text,
+        data.controllerName.text,
+      );
+      prefs.setString('lightConfiguration', jsonEncode(config));
+    }
 
-    setState(() {
-      prefs.setString('lightConfiguration', jsonEncode(thisConfig));
-    });
+    prefs.setInt('numLights', configs.length);
+    configs.forEach(storeConfig);
+  }
+
+  // Loading counter value on start
+  Future<void> _loadLightConfigs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final numLights = prefs.getInt('numLights') ?? 0;
+
+    configs.clear();
+
+    for (var ii = 0; ii < numLights; ii++) {
+      final lightConfigurationJson = prefs.getString('lightConfiguration');
+      if (lightConfigurationJson != null) {
+        setState(() {
+          configs.add(InputData(
+              LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))));
+        });
+      }
+    }
   }
 
   AppBar buildAppBar() {
@@ -133,32 +186,70 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     );
   }
 
+  void _addLightConfiguration() {}
+
+  List<Widget> buildLightConfigWidgets(BuildContext context) {
+    List<Widget> buildWidgets() {
+      List<Widget> widgets = [];
+
+      for (var ii = 0; ii < configs.length; ii++) {
+        widgets.add(createMask(configs[ii]));
+      }
+      return widgets;
+    }
+
+    List<Widget> widgets = [];
+
+    widgets.add(SingleChildScrollView(
+      child: Column(children: buildWidgets()),
+    ));
+
+    widgets.add(Container(
+      height: 10,
+    ));
+
+    widgets.add(SizedBox(
+        width: 50,
+        height: 50,
+        child: ElevatedButton(
+            onPressed: () {
+              _addLightConfiguration();
+            },
+            child: const Text('+'),
+            style: ButtonStyle(
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25.0),
+              side: const BorderSide(
+                color: Colors.red,
+              ),
+            ))))));
+
+    widgets.add(Container(
+      height: 10,
+    ));
+
+    widgets.add(Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+                onPressed: () {
+                  _storeLightConfiguration();
+                  Navigator.pop(context);
+                },
+                child: const Text('Save', style: TextStyle(fontSize: 20))))));
+
+    return widgets;
+  }
+
   Widget buildBody(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(30.0),
-        child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-        Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            child:
-        TextField(
-        controller: _controllerName,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: _lightConfiguration.name,
-            )
-        )),
-          Flexible(
-              child:TextField(
-            controller: _controllerIpAddress,
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: _lightConfiguration.ipAddress,
-            )
-        )),
-        ]
-    ),
+    return SingleChildScrollView(
+        child: Column(children: buildLightConfigWidgets(context)));
+    // [
+
+    // createMask(config[0]),
     // onSubmitted: (String value) async {
     //   await showDialog<void>(
     //       context: context,
@@ -188,19 +279,13 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     //     const TextField(),
     //   ],
     // ),
-    ElevatedButton(
-    onPressed: () {
-    _storeLightConfiguration();
-    Navigator.pop(context);
-    },
-    child: const Text('Save'),
-    )
-    ,
-    ]
-    )
-    ,
-    //
-    );
+    // ElevatedButton(
+    //   onPressed: () {
+    //     _storeLightConfiguration();
+    //     Navigator.pop(context);
+    //   },
+    //   child: const Text('Save'),
+    // ),
   }
 
   @override
