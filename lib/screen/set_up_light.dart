@@ -1,11 +1,22 @@
 import 'dart:convert';
-import 'dart:html';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_light_control/light_configuration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:logger/logger.dart';
 
 import '../constants.dart';
+
+var logger = Logger();
+
+String getRandomString(int length) {
+  const characters =
+      '+-*=?AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+  Random random = Random();
+  return String.fromCharCodes(Iterable.generate(
+      length, (_) => characters.codeUnitAt(random.nextInt(characters.length))));
+}
 
 // Define a custom Form widget.
 // class MyCustomForm extends StatefulWidget {
@@ -71,32 +82,18 @@ class InputData {
   late TextEditingController controllerName;
   late TextEditingController controllerIpAddress;
 
-  LightConfiguration config;
+  late LightConfiguration config;
+  String id = getRandomString(32);
 
-  InputData(this.config); //, this.controllerName, this.controllerIpAddress);
+  InputData(LightConfiguration config) {
+    this.config = config;
 
-}
+    this.controllerName = TextEditingController();
+    this.controllerIpAddress = TextEditingController();
 
-Widget createLightConfigWidget(InputData data) {
-  return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Flexible(
-            child: TextField(
-                controller: data.controllerName,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: data.config.name,
-                ))),
-        Container(width: 10),
-        Flexible(
-            child: TextField(
-                controller: data.controllerIpAddress,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  labelText: data.config.ipAddress,
-                ))),
-      ]));
+    this.controllerName.text = config.name;
+    this.controllerIpAddress.text = config.ipAddress;
+  }
 }
 
 class LightSetupScreen extends StatefulWidget {
@@ -107,21 +104,14 @@ class LightSetupScreen extends StatefulWidget {
 }
 
 class _LightSetupScreenState extends State<LightSetupScreen> {
-  final _lightConfiguration = LightConfiguration(
-      'IP address, e.g. 192.128.0.1', 'Name, e.g. "Kitchen Light"');
-
-  var numNewConfigs = 5;
-
-  List<InputData> configs = [];
+  Map<String, InputData> configs = {};
 
   @override
   void dispose() {
-    void _dispose(InputData config) {
+    configs.forEach((id, config) {
       config.controllerName.dispose();
       config.controllerIpAddress.dispose();
-    }
-
-    configs.forEach(_dispose);
+    });
 
     super.dispose();
   }
@@ -129,81 +119,104 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
   @override
   void initState() {
     super.initState();
-
-    _prepareWidgets();
-  }
-
-  void _prepareWidgets() {
-    final numExistingConfigs = 1;
-    final numTotalConfigs = numExistingConfigs + numNewConfigs;
-
     configs.clear();
 
-    for (var ii = 0; ii < numTotalConfigs; ii++) {
-      configs.add(InputData(_lightConfiguration));
-    }
-
-    void initLightConfig(InputData config) {
-      config.controllerName = TextEditingController();
-      config.controllerIpAddress = TextEditingController();
-    }
-
-    configs.forEach(initLightConfig);
-
     _loadLightConfigs();
+  }
+
+  void _createNewLightConfig() {
+    final _lightConfiguration = LightConfiguration(
+        'IP address, e.g. 192.128.0.1', 'Name, e.g. "Kitchen Light"');
+
+    final emptyEntry = InputData(_lightConfiguration);
+
+    configs[emptyEntry.id] = emptyEntry;
   }
 
   // Loading counter value on start
   Future<void> _loadLightConfigs() async {
     final prefs = await SharedPreferences.getInstance();
-    final numLights = prefs.getInt('numLights') ?? 0;
+    final serializedConfigs = prefs.getString('lightConfiguration') ?? "{}";
 
-    for (var ii = 0; ii < numLights; ii++) {
-      final lightConfigurationJson = prefs.getString('lightConfiguration');
-      if (lightConfigurationJson != null) {
+    logger.d("Read $serializedConfigs");
+
+    try {
+      final listConfigs = jsonDecode(serializedConfigs);
+      logger.d(listConfigs);
+
+      listConfigs.forEach((id, config) {
+        final data = InputData(LightConfiguration.fromJson(config));
+
         setState(() {
-          configs.add(InputData(
-              LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))));
+          configs[data.id] = data;
         });
-      }
+      });
+    } on FormatException catch (e) {
+      logger.e("$e (json: $serializedConfigs)");
     }
   }
 
   Future<void> _storeLightConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
 
-    void storeConfig(InputData data) {
-      final config = LightConfiguration(
-        data.controllerIpAddress.text,
-        data.controllerName.text,
-      );
-      prefs.setString('lightConfiguration', jsonEncode(config));
-    }
-
-    prefs.setInt('numLights', configs.length);
-    configs.forEach(storeConfig);
-  }
-
-  AppBar buildAppBar() {
-    return AppBar(
-      title: const Text(appTitle),
-    );
-  }
-
-  void _addLightConfiguration() {
-    setState(() {
-      numNewConfigs++;
-      _prepareWidgets();
+    final listConfigs = configs.map((id, config) {
+      return MapEntry(
+          id,
+          LightConfiguration(
+            config.controllerIpAddress.text,
+            config.controllerName.text,
+          ));
     });
+
+    logger.d("Saving: $listConfigs");
+    final serializedConfig = jsonEncode(listConfigs);
+    prefs.setString('lightConfiguration', serializedConfig);
+  }
+
+  Widget createLightConfigWidget(
+    InputData data,
+  ) {
+    return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child:
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Flexible(
+              child: TextField(
+                  controller: data.controllerName,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: data.config.name,
+                  ))),
+          Container(width: 10),
+          Flexible(
+              child: TextField(
+                  controller: data.controllerIpAddress,
+                  decoration: InputDecoration(
+                    border: const OutlineInputBorder(),
+                    labelText: data.config.ipAddress,
+                  ))),
+          SizedBox(
+              width: 50,
+              height: 50,
+              child: IconButton(
+                icon: const Icon(Icons.delete),
+                tooltip: 'Delete config',
+                onPressed: () {
+                  setState(() {
+                    configs.remove(data.id);
+                  });
+                },
+              )),
+        ]));
   }
 
   List<Widget> buildLightConfigWidgets(BuildContext context) {
     List<Widget> buildWidgets() {
       List<Widget> widgets = [];
 
-      for (var ii = 0; ii < configs.length; ii++) {
-        widgets.add(createLightConfigWidget(configs[ii]));
-      }
+      configs.forEach((id, config) {
+        widgets.add(createLightConfigWidget(config));
+      });
       return widgets;
     }
 
@@ -222,7 +235,9 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
         height: 50,
         child: ElevatedButton(
             onPressed: () {
-              _addLightConfiguration();
+              setState(() {
+                _createNewLightConfig();
+              });
             },
             child: const Text('+', style: TextStyle(fontSize: 20)),
             style: ButtonStyle(
@@ -257,6 +272,9 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: buildAppBar(), body: buildBody(context));
+    return Scaffold(
+      appBar: AppBar(title: const Text("Edit your light settings")),
+      body: buildBody(context),
+    );
   }
 }
