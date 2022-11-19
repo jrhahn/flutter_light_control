@@ -215,14 +215,11 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
             onPressed: () {
               _addLightConfiguration();
             },
-            child: const Text('+'),
+            child: const Text('+', style: TextStyle(fontSize: 20)),
             style: ButtonStyle(
                 shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(25.0),
-              side: const BorderSide(
-                color: Colors.red,
-              ),
             ))))));
 
     widgets.add(Container(
