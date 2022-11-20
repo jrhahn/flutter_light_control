@@ -13,17 +13,13 @@ class LightSlider extends StatefulWidget {
   State<LightSlider> createState() => _LightSliderState(ipAddress: ipAddress);
 }
 
-void errorDialog(BuildContext context) {
+void errorDialog(BuildContext context, String ipAddress) {
   showDialog<String>(
     context: context,
     builder: (BuildContext context) => AlertDialog(
-      title: const Text('AlertDialog Title'),
-      content: const Text('AlertDialog description'),
+      title: const Text('Server not reachable'),
+      content: Text('Light control server not reachable (http://$ipAddress)'),
       actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.pop(context, 'Cancel'),
-          child: const Text('Cancel'),
-        ),
         TextButton(
           onPressed: () => Navigator.pop(context, 'OK'),
           child: const Text('OK'),
@@ -39,6 +35,16 @@ class _LightSliderState extends State<LightSlider> {
 
   _LightSliderState({required this.ipAddress});
 
+  void sendRequest(double value) async {
+    final bool success = await setBrightness(value / 100, ipAddress);
+
+    if (!success) {
+      logger.e("Error setting brightness for $ipAddress");
+
+      errorDialog(context, ipAddress);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Slider(
@@ -53,13 +59,7 @@ class _LightSliderState extends State<LightSlider> {
         });
       },
       onChangeEnd: (double value) {
-        try {
-          setBrightness(value / 100, ipAddress);
-        } catch (e) {
-          logger.e("Error setting brightness for $ipAddress: $e");
-
-          errorDialog(context);
-        }
+        sendRequest(value);
       },
     );
   }
