@@ -1,15 +1,28 @@
-import 'dart:convert';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_light_control/light_configuration.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_light_control/storage.dart';
 
 import '../constants.dart';
 import '../widget/light_slider.dart';
 
-// This is the type used by the popup menu below.
 enum Menu { itemSetting }
+
+class LightControlController {
+  late TextEditingController controllerName;
+  late TextEditingController controllerIpAddress;
+
+  late LightConfiguration config;
+
+  LightControlController(LightConfiguration config) {
+    this.config = config;
+
+    this.controllerName = TextEditingController();
+    this.controllerIpAddress = TextEditingController();
+
+    this.controllerName.text = config.name;
+    this.controllerIpAddress.text = config.ipAddress;
+  }
+}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,25 +32,32 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  final ValueNotifier<String> _lightConfigurationNotify =
-      ValueNotifier<String>("notify");
+  Map<String, LightControlController> controller = {};
 
   @override
   void initState() {
     super.initState();
-    _loadValue();
+    _generateLightControlControllers();
+  }
+
+  @override
+  void dispose() {
+    controller.forEach((id, control) {
+      control.controllerName.dispose();
+      control.controllerIpAddress.dispose();
+    });
+
+    super.dispose();
   }
 
   //Loading counter value on start
-  Future<void> _loadValue() async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<void> _generateLightControlControllers() async {
+    controller.clear();
+    final configs = await loadLightConfigurations();
 
-    final lightConfigurationJson = prefs.getString('lightConfiguration');
-
-    if (lightConfigurationJson != null) {
-      _lightConfigurationNotify.value =
-          "${LightConfiguration.fromJson(jsonDecode(lightConfigurationJson))}";
-    }
+    configs.forEach((id, config) {
+      controller[id] = LightControlController(config);
+    });
   }
 
   AppBar buildAppBar(BuildContext context) {
@@ -51,7 +71,7 @@ class _MainScreenState extends State<MainScreen> {
                   {
                     Navigator.pushNamed(context, Screen.lightSetup)
                         .then((_) => setState(() {
-                              _loadValue();
+                              _generateLightControlControllers();
                             }));
                   }
               }
@@ -67,26 +87,26 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   List<Widget> _getLightControllers() {
-    List<Widget> controllers = [];
+    List<Widget> widgets = [];
 
-    int numElements = 3;
-    for (int i = 0; i < numElements; i++) {
-      controllers.add(Row(children: <Widget>[
-        lightNameWidget(),
-        Expanded(child: LightSlider())
-      ]));
-    }
+    controller.forEach((id, controller) {
+      widgets.add(Row(
+        children: [
+          lightNameWidget(controller.controllerName.text),
+          const Expanded(child: LightSlider()),
+        ],
+      ));
+    });
 
-    controllers.add(
+    widgets.add(
       Expanded(
         child: Container(
-          // color: Colors.amber,
           width: 100,
         ),
       ),
     );
 
-    return controllers;
+    return widgets;
   }
 
   Widget buildBody() {
@@ -100,20 +120,16 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  Widget lightNameWidget() {
-    return ValueListenableBuilder(
-        valueListenable: _lightConfigurationNotify,
-        builder: (BuildContext context, String value, Widget? child) {
-          return Text(
-            value,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.left,
-          );
-        });
+  Widget lightNameWidget(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.black,
+        fontSize: 20,
+        fontWeight: FontWeight.w500,
+      ),
+      textAlign: TextAlign.left,
+    );
   }
 
   @override
