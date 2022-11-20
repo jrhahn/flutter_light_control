@@ -1,28 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_light_control/light_configuration.dart';
+import 'package:flutter_light_control/light_control_controller.dart';
 import 'package:flutter_light_control/storage.dart';
 
 import '../constants.dart';
 import '../widget/light_slider.dart';
 
 enum Menu { itemSetting }
-
-class LightControlController {
-  late TextEditingController controllerName;
-  late TextEditingController controllerIpAddress;
-
-  late LightConfiguration config;
-
-  LightControlController(LightConfiguration config) {
-    this.config = config;
-
-    this.controllerName = TextEditingController();
-    this.controllerIpAddress = TextEditingController();
-
-    this.controllerName.text = config.name;
-    this.controllerIpAddress.text = config.ipAddress;
-  }
-}
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -50,7 +33,6 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  //Loading counter value on start
   Future<void> _generateLightControlControllers() async {
     controller.clear();
     final configs = await loadLightConfigurations();
@@ -86,17 +68,34 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  List<Widget> _getLightControllers() {
+  List<Widget> _buildLightControlWidgets() {
     List<Widget> widgets = [];
 
-    controller.forEach((id, controller) {
-      widgets.add(Row(
-        children: [
-          lightNameWidget(controller.controllerName.text),
-          const Expanded(child: LightSlider()),
-        ],
-      ));
-    });
+    if (controller.isNotEmpty) {
+      controller.forEach((id, controller) {
+        widgets.add(Row(
+          children: [
+            lightNameWidget(controller.controllerName.text),
+            Expanded(
+                child: LightSlider(
+              ipAddress: controller.controllerIpAddress.text,
+            )),
+          ],
+        ));
+      });
+    } else {
+      widgets.add(Container(height: 100));
+      widgets.add(const Align(
+          alignment: Alignment.center,
+          child: Text(
+            "Click on the menu in the upper right corner to set up a new light.",
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+            ),
+            textAlign: TextAlign.center,
+          )));
+    }
 
     widgets.add(
       Expanded(
@@ -111,11 +110,11 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget buildBody() {
     return Container(
-      padding: EdgeInsets.all(15.0),
+      padding: const EdgeInsets.all(15.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: _getLightControllers(),
+        children: _buildLightControlWidgets(),
       ),
     );
   }

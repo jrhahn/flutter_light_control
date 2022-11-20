@@ -7,8 +7,6 @@ import 'package:flutter_light_control/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
 
-import '../constants.dart';
-
 var logger = Logger();
 
 String getRandomString(int length) {
@@ -127,7 +125,7 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
 
   void _createNewLightConfig() {
     final lightConfiguration = LightConfiguration(
-        'IP address, e.g. 192.128.0.1', 'Name, e.g. "Kitchen Light"');
+        'IP address, e.g. 192.168.178.34', 'Name, e.g. "Kitchen Light"');
 
     final emptyEntry = InputData(lightConfiguration);
 
