@@ -37,8 +37,10 @@ class _MainScreenState extends State<MainScreen> {
     controller.clear();
     final configs = await loadLightConfigurations();
 
-    configs.forEach((id, config) {
-      controller[id] = LightControlController(config);
+    setState(() {
+      configs.forEach((id, config) {
+        controller[id] = LightControlController(config);
+      });
     });
   }
 
@@ -52,9 +54,7 @@ class _MainScreenState extends State<MainScreen> {
                 case Menu.itemSetting:
                   {
                     Navigator.pushNamed(context, Screen.lightSetup)
-                        .then((_) => setState(() {
-                              _generateLightControlControllers();
-                            }));
+                        .then((_) => _generateLightControlControllers());
                   }
               }
             },
