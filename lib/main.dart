@@ -5,6 +5,8 @@ import 'constants.dart';
 import 'screen/main.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
   runApp(const LightControlApp());
 }
 
@@ -25,6 +27,7 @@ class _LightControlAppState extends State<LightControlApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: appTitle,
         theme: ThemeData(
           primarySwatch: Colors.blue,

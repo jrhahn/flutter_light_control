@@ -1,16 +1,18 @@
-import 'dart:async';
-import 'dart:developer';
-
 import 'package:http/http.dart' as http;
 
-const serverURL = "http://192.168.178.34";
+import 'package:logger/logger.dart';
 
-Future<String> setBrightness(double brightness) async {
+var logger = Logger();
+
+Future<bool> setBrightness(
+  double brightness,
+  String ipAddress,
+) async {
   final brightnessClamped = brightness.clamp(0.0, 1.0);
 
   try {
     final response = await http.post(
-      Uri.parse('$serverURL/set_brightness'),
+      Uri.parse('http://$ipAddress/set_brightness'),
       headers: <String, String>{
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -19,15 +21,14 @@ Future<String> setBrightness(double brightness) async {
       },
     );
 
-    if (response.statusCode != 201) {
-      // If the server did not return a 201 CREATED response,
-      // then throw an exception.
-      throw Exception(
-          'Failed to set brightness (error code ${response.statusCode}).');
+    if (response.statusCode != 200) {
+      logger.e('Failed to set brightness (error code ${response.statusCode}).');
+      return false;
     }
-  } on http.ClientException catch (e) {
-    log(e.toString());
+  } catch (e) {
+    logger.e(e);
+    return false;
   }
 
-  return "Brightness set to $brightness";
+  return true;
 }
