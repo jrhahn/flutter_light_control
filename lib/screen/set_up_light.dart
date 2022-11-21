@@ -1,21 +1,13 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_light_control/light_configuration.dart';
 import 'package:flutter_light_control/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter_light_control/utils.dart';
 
 var logger = Logger();
-
-String getRandomString(int length) {
-  const characters =
-      '+-*=?AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
-  Random random = Random();
-  return String.fromCharCodes(Iterable.generate(
-      length, (_) => characters.codeUnitAt(random.nextInt(characters.length))));
-}
 
 // Define a custom Form widget.
 // class MyCustomForm extends StatefulWidget {
