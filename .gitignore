@@ -9,10 +9,10 @@
 .buildlog/
 .history
 .svn/
-.linux/
-.macos/
-.web/
-.windows/ 
+linux/
+macos/
+web/
+windows/ 
 # IntelliJ related
 *.iml
 *.ipr
