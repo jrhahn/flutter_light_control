@@ -13,18 +13,13 @@ class LightSlider extends StatefulWidget {
   State<LightSlider> createState() => _LightSliderState(ipAddress: ipAddress);
 }
 
-void errorDialog(BuildContext context, String ipAddress) {
-  showDialog<String>(
-    context: context,
-    builder: (BuildContext context) => AlertDialog(
-      title: const Text('Server not reachable'),
+void _showToast(BuildContext context, String ipAddress) {
+  final scaffold = ScaffoldMessenger.of(context);
+  scaffold.showSnackBar(
+    SnackBar(
       content: Text('Light control server not reachable (http://$ipAddress)'),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () => Navigator.pop(context, 'OK'),
-          child: const Text('OK'),
-        ),
-      ],
+      action:
+          SnackBarAction(label: 'Ok', onPressed: scaffold.hideCurrentSnackBar),
     ),
   );
 }
@@ -41,7 +36,7 @@ class _LightSliderState extends State<LightSlider> {
     if (!success) {
       logger.e("Error setting brightness for $ipAddress");
 
-      errorDialog(context, ipAddress);
+      _showToast(context, ipAddress);
     }
   }
 
