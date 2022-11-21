@@ -1,6 +1,6 @@
 # Light Control
 
-This is a client application that interacts with the [Pico Pi dimmer](https://github.com/jrhahn/pico_pi_dimmer). The app allows the user to set up an arbitrary number of endpoints (Pico Pi). Once configured, the brightness of the LED stripes can easily adjusted by moving a slider.
+This is a client application that interacts with the [Pico Pi dimmer](https://github.com/jrhahn/pico_pi_dimmer). The app allows the user to set up an arbitrary number of endpoints (Pico Pi). Once configured, the brightness of the LED stripes can easily be adjusted by moving a slider.
 
 The app is built with flutter. Hence, it is easy to build a web-based, iOS or Android version.
 
