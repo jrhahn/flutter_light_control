@@ -5,7 +5,7 @@ import 'package:flutter_light_control/light_configuration.dart';
 import 'package:flutter_light_control/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
-import 'package:flutter_light_control/utils.dart';
+import 'package:flutter_light_control/light_configuration_controller.dart';
 
 var logger = Logger();
 
@@ -69,24 +69,6 @@ var logger = Logger();
 //   }
 // }
 
-class InputData {
-  late TextEditingController controllerName;
-  late TextEditingController controllerIpAddress;
-
-  late LightConfiguration config;
-  String id = getRandomString(32);
-
-  InputData(LightConfiguration config) {
-    this.config = config;
-
-    this.controllerName = TextEditingController();
-    this.controllerIpAddress = TextEditingController();
-
-    this.controllerName.text = config.name;
-    this.controllerIpAddress.text = config.ipAddress;
-  }
-}
-
 class LightSetupScreen extends StatefulWidget {
   const LightSetupScreen({super.key});
 
@@ -95,7 +77,7 @@ class LightSetupScreen extends StatefulWidget {
 }
 
 class _LightSetupScreenState extends State<LightSetupScreen> {
-  Map<String, InputData> configs = {};
+  Map<String, LightConfigurationController> configs = {};
 
   @override
   void dispose() {
@@ -112,51 +94,31 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     super.initState();
     configs.clear();
 
-    _loadLightConfigs();
+    _loadLightConfigurations();
   }
 
-  void _createNewLightConfig() {
+  void _addNewLightConfigurationController() {
     final lightConfiguration = LightConfiguration(
         'IP address, e.g. 192.168.178.34', 'Name, e.g. "Kitchen Light"');
 
-    final emptyEntry = InputData(lightConfiguration);
+    final emptyEntry = LightConfigurationController(lightConfiguration);
 
     configs[emptyEntry.id] = emptyEntry;
   }
 
   // Loading counter value on start
-  Future<void> _loadLightConfigs() async {
+  Future<void> _loadLightConfigurations() async {
     final lightConfigs = await loadLightConfigurations();
 
     lightConfigs.forEach((id, config) {
       setState(() {
-        final inputData = InputData(config);
+        final inputData = LightConfigurationController(config);
         configs[inputData.id] = inputData;
       });
     });
   }
-  // final prefs = await SharedPreferences.getInstance();
-  // final serializedConfigs = prefs.getString('lightConfiguration') ?? "{}";
 
-  // logger.d("Read $serializedConfigs");
-
-  // try {
-  //   final listConfigs = jsonDecode(serializedConfigs);
-  //   logger.d(listConfigs);
-
-  //   listConfigs.forEach((id, config) {
-  //     final data = InputData(LightConfiguration.fromJson(config));
-
-  //     setState(() {
-  //       configs[data.id] = data;
-  //     });
-  //   });
-  // } on FormatException catch (e) {
-  //   logger.e("$e (json: $serializedConfigs)");
-  // }
-  // }
-
-  Future<void> _storeLightConfiguration() async {
+  Future<void> _saveLightConfiguration() async {
     final prefs = await SharedPreferences.getInstance();
 
     final listConfigs = configs.map((id, config) {
@@ -173,8 +135,8 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
     prefs.setString('lightConfiguration', serializedConfig);
   }
 
-  Widget createLightConfigWidget(
-    InputData data,
+  Widget createLightConfigurationWidget(
+    LightConfigurationController data,
   ) {
     return Padding(
         padding: const EdgeInsets.all(8.0),
@@ -215,8 +177,9 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
       List<Widget> widgets = [];
 
       configs.forEach((id, config) {
-        widgets.add(createLightConfigWidget(config));
+        widgets.add(createLightConfigurationWidget(config));
       });
+
       return widgets;
     }
 
@@ -236,7 +199,7 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
         child: ElevatedButton(
             onPressed: () {
               setState(() {
-                _createNewLightConfig();
+                _addNewLightConfigurationController();
               });
             },
             child: const Text('+', style: TextStyle(fontSize: 20)),
@@ -257,7 +220,7 @@ class _LightSetupScreenState extends State<LightSetupScreen> {
             height: 50,
             child: ElevatedButton(
                 onPressed: () {
-                  _storeLightConfiguration();
+                  _saveLightConfiguration();
                   Navigator.pop(context);
                 },
                 child: const Text('Save', style: TextStyle(fontSize: 20))))));
