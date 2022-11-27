@@ -28,16 +28,34 @@ class _LightSliderState extends State<LightSlider> {
   double _currentSliderValue = 20;
   String ipAddress = "";
 
+  final int scaler = 100;
+
   _LightSliderState({required this.ipAddress});
 
+  @override
+  void initState() {
+    super.initState();
+
+    getCurrentBrightnessFromDevice();
+  }
+
   void sendRequest(double value) async {
-    final bool success = await setBrightness(value / 100, ipAddress);
+    final bool success = await setBrightness(value / scaler, ipAddress);
 
     if (!success) {
       logger.e("Error setting brightness for $ipAddress");
 
       _showToast(context, ipAddress);
     }
+  }
+
+  void getCurrentBrightnessFromDevice() async {
+    final double brightness = await getBrightness(ipAddress);
+    print("received: ${brightness}  ");
+
+    setState(() {
+      _currentSliderValue = scaler.toDouble() * brightness;
+    });
   }
 
   @override
