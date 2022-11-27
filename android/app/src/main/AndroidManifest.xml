@@ -2,7 +2,7 @@
     package="com.freeflowgfx.flutter_light_control">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="light_control"
+        android:label="Light Control"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

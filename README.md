@@ -11,3 +11,5 @@ The app is built with flutter. Hence, it is easy to build a web-based, iOS or An
 </p>
 
 I have not tested yet if it is compatible with [Pico Pi dimmer v2](https://github.com/jrhahn/pico_pi_dimmer_v2). The required changes, if any, should be straight forward.
+
+Icon source: <a href="https://www.flaticon.com/free-icons/light-control" title="light control icons">Light control icons created by pongsakornRed - Flaticon</a>
